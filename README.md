@@ -10,7 +10,7 @@ I took the liberty to do the following:
 - switch from callbacks to async/await
 - upgrade all dependencies to their latest versions
 - remove the method `global` as globals are evil
-- the core of the code has not changed and all credits should go to @xavi-
+- the core of the code has not changed and all credits should go to [@xavi-](https://github.com/xavi-)
 
 # node-copy-paste-2
 
