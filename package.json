@@ -20,6 +20,7 @@
     "url": "https://github.com/quilicicf/node-copy-paste-2"
   },
   "dependencies": {
+    "lodash": "4.17.5",
     "iconv-lite": "0.4.19"
   },
   "devDependencies": {
@@ -27,6 +28,6 @@
     "should": "13.2.1"
   },
   "scripts": {
-    "test": "mocha -w --exit"
+    "test": "mocha"
   }
 }

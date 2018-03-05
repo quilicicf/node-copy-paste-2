@@ -1,23 +1,24 @@
+const _ = require('lodash');
+
 const { execSync, spawn } = require('child_process');
-const util = require('util');
+const { inspect } = require('util');
 
 const darwin = require('./platform/darwin');
 const win32 = require('./platform/win32');
 const linux = require('./platform/linux');
-const openbsd = require('./platform/openbsd');
 
 const configs = {
   darwin,
   win32,
   linux,
   freebsd: linux,
-  openbsd
+  openbsd: linux
 };
 
 const getConfig = () => {
   const config = configs[ process.platform ];
   if (!config) {
-    throw Error("Unknown platform: '" + process.platform + "'.  Send this error to xavi.rmz@gmail.com.");
+    throw Error("Unknown platform: '" + process.platform + "'. Please send this error to quilicicf@gmail.com.");
   }
 
   return config;
@@ -25,109 +26,45 @@ const getConfig = () => {
 
 const config = getConfig();
 
-const getOutput = (text) => {
-  const type = Object.prototype.toString.call(text);
-
-  if (type === '[object String]') {
-    return text;
+const toString = (input) => {
+  if (typeof input === 'string') {
+    return input;
   }
 
-  if (type === '[object Object]') {
-    return util.inspect(text, { depth: null });
+  if (typeof input === 'object') {
+    return inspect(input, { depth: null });
   }
 
-  if (type === '[object Array]') {
-    return util.inspect(text, { depth: null });
-  }
-
-  return text.toString();
+  return input.toString();
 };
 
-const copy = (text, callback) => {
+const copy = async (input) => {
   const child = spawn(config.copy.command, config.copy.args);
-
-  const done = callback ? callback : () => {};
 
   const stderrData = [];
 
-  child.stdin.on('error', done);
+  return new Promise((resolve, reject) => {
+    child.stdin.on('error', reject);
 
-  child
-    .on('exit', () => done(null, text))
-    .on('error', done);
-
-  child.stderr
-    .on('data', (chunk) => stderrData.push(chunk))
-    .on('end', () => {
-      if (stderrData.length === 0) { return; }
-      done(new Error(config.decode(stderrData)));
-    });
-
-  if (text.pipe) {
-    text.pipe(child.stdin);
-  } else {
-    child.stdin.end(config.encode(getOutput(text)));
-  }
-
-  return text;
-};
-
-const pasteCommand = [ config.paste.command ].concat(config.paste.args).join(' ');
-
-const paste = (callback) => {
-  if (execSync && !callback) {
-    return config.decode(execSync(pasteCommand));
-  }
-
-  if (callback) {
-    const child = spawn(config.paste.command, config.paste.args);
-
-    const done = callback ? callback : () => {};
-
-    const data = [];
-    const stderrData = [];
-
-    child.on('error', done);
-
-    child.stdout
-      .on('data', (chunk) => data.push(chunk))
-      .on('end', () => done(null, config.decode(data)));
+    child
+      .on('exit', () => resolve(input))
+      .on('error', reject);
 
     child.stderr
       .on('data', (chunk) => stderrData.push(chunk))
       .on('end', () => {
-        if (stderrData.length === 0) { return; }
-
-        done(new Error(config.decode(stderrData)));
+        if (_.isEmpty(stderrData)) { return; }
+        reject(new Error(config.decode(stderrData)));
       });
 
-  } else {
-    throw new Error('No synchronous version of paste is supported on this platform.');
-  }
-};
-
-const copyAsync = async (content) => {
-  return new Promise((resolve, reject) => {
-    copy(content, (error, content) => {
-      if (error) {
-        return reject(error);
-      }
-
-      return resolve(content);
-    });
+    if (input.pipe) {
+      input.pipe(child.stdin);
+    } else {
+      child.stdin.end(config.encode(toString(input)));
+    }
   });
 };
 
-const pasteAsync = async () => {
-  return new Promise((resolve, reject) => {
-    paste((error, content) => {
-      if (error) {
-        return reject(error);
-      }
+const paste = () => config.decode(execSync(config.paste.command));
 
-      return resolve(content);
-    });
-  });
-};
-
-module.exports = { copy, paste, copyAsync, pasteAsync };
+module.exports = { copy, paste };
