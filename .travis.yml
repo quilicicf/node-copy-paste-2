@@ -4,7 +4,7 @@ cache:
   directories:
     - "node_modules"
 node_js:
-  - "7"
+  - "8"
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install xclip -y
