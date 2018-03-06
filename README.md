@@ -5,7 +5,7 @@ THIS REPOSITORY IS A COPY
 It was copied from [node-copy-paste](https://github.com/xavi-/node-copy-paste) because [this security-related PR](https://github.com/xavi-/node-copy-paste/pull/64) was never merged.
 
 I took the liberty to do the following:
-- upgrade the code to newer JS syntax => now runs on NodeJS 7+
+- upgrade the code to newer JS syntax => now runs on NodeJS 8+
 - remove deprecated methods (silent, noConflict)
 - switch from callbacks to async/await
 - upgrade all dependencies to their latest versions
@@ -29,7 +29,7 @@ I took the liberty to do the following:
 
 # node-copy-paste-2
 
-A command line utility that allows read/write (i.e copy/paste) access to the system clipboard.  It does this by wrapping [pbcopy/pbpaste](https://developer.apple.com/library/mac/#documentation/Darwin/Reference/Manpages/man1/pbcopy.1.htmlhttps://coderwall.com/p/osbzzq/copy-files-to-clipboard-using-command-line-on-osx) (for OSX), [xclip](https://github.com/astrand/xclip) (for Linux, FreeBSD, and OpenBSD), and [clip](https://www.labnol.org/software/copy-command-output-to-clipboard/2506/) (for Windows). Currently works with node.js v7+.
+A command line utility that allows read/write (i.e copy/paste) access to the system clipboard.  It does this by wrapping [pbcopy/pbpaste](https://developer.apple.com/library/mac/#documentation/Darwin/Reference/Manpages/man1/pbcopy.1.htmlhttps://coderwall.com/p/osbzzq/copy-files-to-clipboard-using-command-line-on-osx) (for OSX), [xclip](https://github.com/astrand/xclip) (for Linux, FreeBSD, and OpenBSD), and [clip](https://www.labnol.org/software/copy-command-output-to-clipboard/2506/) (for Windows). Currently works with node.js v8+.
 
 ## The API
 
