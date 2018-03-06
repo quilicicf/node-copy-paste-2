@@ -57,6 +57,8 @@ npm install copy-paste
 
 ## TODO list
 
-- [ ] Install code quality/security tools
+- [x] Install code quality/security tools
+- [ ] Add post-install script to check that dependencies are installed
 - [ ] Test more thoroughly, currently only text copies are tested. Not objects, arrays, streams...
 - [ ] Properly test on all platforms (currently only tested on linux mint)
+- [ ] Publish to NPM
