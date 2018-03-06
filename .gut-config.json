@@ -1,0 +1,4 @@
+{
+  "commitMessageSuffixTemplate": "#$ticketNumber",
+  "reviewTool": "github"
+}
