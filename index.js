@@ -1,23 +1,49 @@
-const _ = require('lodash');
+const _ = require('lodash'); // TODO: remove ?
 
-const { execSync, spawn } = require('child_process');
+const { exec, spawn } = require('child_process');
 const { inspect } = require('util');
+const { convert } = require('encoding');
+const { encodeStream, decodeStream } = require('iconv-lite');
 
-const platform = require('./platform/platform');
+const encodings = require('./lib/encodings');
 
-const toString = (input) => {
-  if (typeof input === 'string') {
-    return input;
-  }
+const darwin = require('./platform/darwin');
+const win32 = require('./platform/win32');
+const linux = require('./platform/linux');
 
-  if (typeof input === 'object') {
-    return inspect(input, { depth: null });
-  }
-
-  return input.toString();
+const platforms = {
+  darwin,
+  win32,
+  linux,
+  freebsd: linux,
+  openbsd: linux
 };
 
-const copy = async (input) => {
+const getPlatform = () => {
+  const platform = platforms[ process.platform ];
+  if (!platform) {
+    throw Error("Unknown platform: '" + process.platform + "'. Please send this error to quilicicf@gmail.com.");
+  }
+
+  return platform;
+};
+
+const platform = getPlatform();
+
+const toBuffer = (input, inputEncoding) => {
+  if (typeof input === 'string') {
+    return convert(input, platform.encoding, inputEncoding);
+  }
+
+  if (Buffer.isBuffer(input)) {
+    return convert(input, platform.encoding, inputEncoding);
+  }
+
+  const resultString = inspect(input, { depth: null });
+  return convert(resultString, platform.encoding, inputEncoding);
+};
+
+const copy = async ({ input, inputEncoding = encodings.UTF_8 }) => {
   const child = spawn(platform.copy.command, platform.copy.args);
 
   const stderrData = [];
@@ -33,17 +59,28 @@ const copy = async (input) => {
       .on('data', (chunk) => stderrData.push(chunk))
       .on('end', () => {
         if (_.isEmpty(stderrData)) { return; }
-        reject(new Error(platform.decode(stderrData)));
+        reject(new Error(convert(stderrData, encodings.UTF_8, platform.encoding)));
       });
 
     if (input.pipe) {
-      input.pipe(child.stdin);
+      input
+        .pipe(decodeStream(inputEncoding))
+        .pipe(encodeStream(platform.encoding))
+        .pipe(child.stdin);
     } else {
-      child.stdin.end(platform.encode(toString(input)));
+      const convertedInputBuffer = toBuffer(input, inputEncoding);
+      child.stdin.end(convertedInputBuffer);
     }
   });
 };
 
-const paste = () => platform.decode(execSync(platform.paste.command));
+const paste = async () => {
+  return new Promise((resolve, reject) => {
+    exec(platform.paste.command, { encoding: platform.encoding }, (error, stdout) => {
+      if (error) { return reject(error); }
+      return resolve(stdout.toString());
+    });
+  });
+};
 
-module.exports = { copy, paste };
+module.exports = { encodings, copy, paste };
