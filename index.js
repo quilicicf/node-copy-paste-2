@@ -1,7 +1,7 @@
 const _ = require('lodash'); // TODO: remove ?
 
 const { Transform } = require('stream');
-const { execSync, spawn } = require('child_process');
+const { exec, spawn } = require('child_process');
 const { inspect } = require('util');
 const { convert } = require('encoding');
 const encodings = require('./lib/encodings');
@@ -18,9 +18,9 @@ const platforms = {
   openbsd: linux
 };
 
-const createEncoder = (targetEncoding) => {
+const createEncoder = (inputEncoding, targetEncoding) => {
   return new Transform({
-    transform (chunk, inputEncoding, callback) {
+    transform (chunk, __, callback) {
       this.push(convert(chunk, inputEncoding, targetEncoding));
       callback();
     }
@@ -72,7 +72,7 @@ const copy = async ({ input, inputEncoding = encodings.UTF_8 }) => {
 
     if (input.pipe) {
       input
-        .pipe(createEncoder(platform.encoding))
+        .pipe(createEncoder(inputEncoding, platform.encoding))
         .pipe(child.stdin);
     } else {
       const convertedInputBuffer = toBuffer(input, inputEncoding);
@@ -81,8 +81,13 @@ const copy = async ({ input, inputEncoding = encodings.UTF_8 }) => {
   });
 };
 
-const paste = ({ outputEncoding = encodings.UTF_8 }) =>
-  convert(execSync(platform.paste.command), outputEncoding, platform.encoding)
-    .toString();
+const paste = ({ outputEncoding = encodings.UTF_8 }) => {
+  return new Promise((resolve, reject) => {
+    exec(platform.paste.command, { encoding: 'buffer' }, (error, stdout) => {
+      if (error) { return reject(error); }
+      return resolve(convert(stdout, outputEncoding, platform.encoding).toString());
+    });
+  });
+};
 
 module.exports = { encodings, copy, paste };
