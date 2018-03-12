@@ -20,15 +20,15 @@
     "url": "https://github.com/quilicicf/node-copy-paste-2"
   },
   "dependencies": {
-    "lodash": "4.17.5",
-    "iconv-lite": "0.4.19"
+    "encoding": "0.1.12",
+    "iconv-lite": "0.4.19",
+    "lodash": "4.17.5"
   },
   "devDependencies": {
     "eslint": "4.18.2",
     "eslint-config-airbnb-base": "12.1.0",
     "eslint-plugin-import": "2.9.0",
     "mocha": "5.0.1",
-    "npm-check-updates": "2.14.1",
     "should": "13.2.1"
   },
   "engines": {
