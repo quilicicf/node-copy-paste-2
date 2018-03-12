@@ -1,13 +1,16 @@
-const _ = require('lodash');
+const _ = require('lodash'); // TODO: remove ?
 
+const { Transform } = require('stream');
 const { execSync, spawn } = require('child_process');
 const { inspect } = require('util');
+const { convert } = require('encoding');
+const encodings = require('./lib/encodings');
 
 const darwin = require('./platform/darwin');
 const win32 = require('./platform/win32');
 const linux = require('./platform/linux');
 
-const configs = {
+const platforms = {
   darwin,
   win32,
   linux,
@@ -15,31 +18,41 @@ const configs = {
   openbsd: linux
 };
 
-const getConfig = () => {
-  const config = configs[ process.platform ];
-  if (!config) {
+const createEncoder = (targetEncoding) => {
+  return new Transform({
+    transform (chunk, inputEncoding, callback) {
+      this.push(convert(chunk, inputEncoding, targetEncoding));
+      callback();
+    }
+  });
+};
+
+const getPlatform = () => {
+  const platform = platforms[ process.platform ];
+  if (!platform) {
     throw Error("Unknown platform: '" + process.platform + "'. Please send this error to quilicicf@gmail.com.");
   }
 
-  return config;
+  return platform;
 };
 
-const config = getConfig();
+const platform = getPlatform();
 
-const toString = (input) => {
+const toBuffer = (input, inputEncoding) => {
   if (typeof input === 'string') {
-    return input;
+    return convert(input, platform.encoding, inputEncoding);
   }
 
-  if (typeof input === 'object') {
-    return inspect(input, { depth: null });
+  if (Buffer.isBuffer(input)) {
+    return convert(input, platform.encoding, inputEncoding);
   }
 
-  return input.toString();
+  const resultString = inspect(input, { depth: null });
+  return convert(resultString, platform.encoding, inputEncoding);
 };
 
-const copy = async (input) => {
-  const child = spawn(config.copy.command, config.copy.args);
+const copy = async ({ input, inputEncoding = encodings.UTF_8 }) => {
+  const child = spawn(platform.copy.command, platform.copy.args);
 
   const stderrData = [];
 
@@ -54,17 +67,22 @@ const copy = async (input) => {
       .on('data', (chunk) => stderrData.push(chunk))
       .on('end', () => {
         if (_.isEmpty(stderrData)) { return; }
-        reject(new Error(config.decode(stderrData)));
+        reject(new Error(convert(stderrData, encodings.UTF_8, platform.encoding)));
       });
 
     if (input.pipe) {
-      input.pipe(child.stdin);
+      input
+        .pipe(createEncoder(platform.encoding))
+        .pipe(child.stdin);
     } else {
-      child.stdin.end(config.encode(toString(input)));
+      const convertedInputBuffer = toBuffer(input, inputEncoding);
+      child.stdin.end(convertedInputBuffer);
     }
   });
 };
 
-const paste = () => config.decode(execSync(config.paste.command));
+const paste = ({ outputEncoding = encodings.UTF_8 }) =>
+  convert(execSync(platform.paste.command), outputEncoding, platform.encoding)
+    .toString();
 
-module.exports = { copy, paste };
+module.exports = { encodings, copy, paste };

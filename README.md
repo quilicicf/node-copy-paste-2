@@ -35,7 +35,7 @@ A command line utility that allows read/write (i.e copy/paste) access to the sys
 
 When `require("copy-paste-2")` is executed, an object with the following properties is returned:
 
-- `copy(stream|string|array|object)`: Asynchronously replaces the current content of the clipboard with the input. Takes either a string, array, object, or readable stream. Returns the input value.
+- `copy(stream|buffer|string|array|object)`: Asynchronously replaces the current content of the clipboard with the input. Takes either a string, array, object, or readable stream. Returns the input value.
 - `paste()`: Synchronously returns the current contents of the system clip board.
 
 ## Example
