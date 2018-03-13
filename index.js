@@ -1,5 +1,3 @@
-const _ = require('lodash'); // TODO: remove ?
-
 const { exec, spawn } = require('child_process');
 const { inspect } = require('util');
 const { convert } = require('encoding');
@@ -58,7 +56,7 @@ const copy = async ({ input, inputEncoding = encodings.UTF_8 }) => {
     child.stderr
       .on('data', (chunk) => stderrData.push(chunk))
       .on('end', () => {
-        if (_.isEmpty(stderrData)) { return; }
+        if (stderrData.length === 0) { return; }
         reject(new Error(convert(stderrData, encodings.UTF_8, platform.encoding)));
       });
 
