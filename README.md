@@ -6,7 +6,7 @@ A command line utility that allows read/write (i.e copy/paste) access to the sys
 - [xclip](https://github.com/astrand/xclip) for Linux, FreeBSD, and OpenBSD
 - [clip](https://www.labnol.org/software/copy-command-output-to-clipboard/2506/) for Windows
 
-Currently works with node.js v7+ with __text only__.
+Currently works with node.js v8+ with __text only__.
 
 The text is put in your system's clipboard, if any character in it are not supported by your system's default character set, the result won't be pretty.
 The character sets are:
@@ -20,7 +20,7 @@ It was copied from [node-copy-paste](https://github.com/xavi-/node-copy-paste) b
 I was first willing to only make a simple fix and eventually remove this repository when my PR was merged but after a bit of fiddling I found myself re-writing most of the code.
 
 The differences with [node-copy-paste](https://github.com/xavi-/node-copy-paste)
-- upgrade the code to newer JS syntax => now runs on NodeJS 7+
+- upgrade the code to newer JS syntax => now runs on NodeJS 8+
 - remove deprecated methods (silent, noConflict)
 - switch from callbacks to async/await
 - upgrade all dependencies to their latest versions
